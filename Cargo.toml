@@ -1,0 +1,30 @@
+[workspace]
+members = ["core", "bindings/python"]
+resolver = "2"
+
+[workspace.dependencies]
+x25519-dalek = { version = "2.0", features = ["reusable_secrets", "static_secrets"] }
+chacha20poly1305 = { version = "0.10", features = ["xchacha20", "std"] }
+aes-gcm = { version = "0.10", features = ["aes"] }
+hkdf = "0.12"
+hmac = { version = "0.12", features = ["std"] }
+sha2 = "0.10"
+blake3 = "0.7"
+rand_core = "0.6"
+rand = "0.8"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+zeroize = { version = "1.6", features = ["zeroize_derive", "alloc"] }
+bytes = "1.5"
+parking_lot = "0.12"
+libc = "0.2"
+cbindgen = { version = "0.24", optional = true }
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+authors = ["Secure Protocol Team"]

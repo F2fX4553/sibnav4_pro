@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Secure Protocol CLI
+# Uses the Python bindings to perform secure operations
+
+set -euo pipefail
+
+# Configuration
+CONFIG_DIR="${HOME}/.secure-protocol"
+KEY_STORE="${CONFIG_DIR}/keystore.json"
+SESSIONS_DIR="${CONFIG_DIR}/sessions"
+PYTHON_CMD="python3"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+log() { echo -e "${BLUE}[INFO]${NC} $*"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
+error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+
+init() {
+    mkdir -p "$CONFIG_DIR" "$SESSIONS_DIR"
+    log "Initialized configuration at $CONFIG_DIR"
+}
+
+check_python() {
+    if ! command -v $PYTHON_CMD &> /dev/null; then
+        error "Python 3 is required but not found."
+        exit 1
+    fi
+}
+
+gen_key() {
+    check_python
+    $PYTHON_CMD -c "
+import sys
+sys.path.append('$(pwd)/bindings/python')
+from secure_protocol import generate_keypair
+import base64
+
+pub, priv = generate_keypair()
+print(f'Public: {base64.b64encode(pub).decode()}')
+print(f'Private: {base64.b64encode(priv).decode()}')
+"
+}
+
+encrypt() {
+    local message="$1"
+    # For demo purposes, we create a context and session on the fly 
+    # In a real app, we'd load keys from keystore
+    check_python
+    $PYTHON_CMD -c "
+import sys
+sys.path.append('$(pwd)/bindings/python')
+from secure_protocol import SecureContext
+import base64
+
+ctx = SecureContext()
+# Mock peer setup for CLI demo
+# In real usage, you'd load a stored session
+# For now, we just show that we can call the bindings
+print('Encryption requires established session (not fully implemented in CLI demo specific to peer)', file=sys.stderr)
+"
+}
+
+show_help() {
+    cat << EOF
+Secure Protocol CLI
+
+Usage: $0 [command]
+
+Commands:
+  init          Initialize configuration
+  gen-key       Generate a new keypair
+  help          Show this help message
+EOF
+}
+
+case "${1:-}" in
+    init)
+        init
+        ;;
+    gen-key)
+        gen_key
+        ;;
+    encrypt)
+        if [[ $# -lt 2 ]]; then
+            error "Usage: $0 encrypt <message>"
+            exit 1
+        fi
+        encrypt "$2"
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        show_help
+        exit 1
+        ;;
+esac
